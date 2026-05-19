@@ -1,6 +1,6 @@
 import re
 from textblob import TextBlob
-from news_fetcher import FUENTES_FIABLES
+from news.news_fetcher import FUENTES_FIABLES
 
 # =============================================================================
 # DICCIONARIOS DE ANÁLISIS
@@ -98,8 +98,8 @@ class Analyzer:
     """
 
     # Umbrales para asignar el veredicto final
-    UMBRAL_FIABLE     = 0.35   # Por debajo → FIABLE
-    UMBRAL_SOSPECHOSA = 0.65   # Entre 0.35 y 0.65 → SOSPECHOSA
+    UMBRAL_FIABLE     = 0.38   # Por debajo → FIABLE
+    UMBRAL_SOSPECHOSA = 0.58   # Entre 0.38 y 0.58 → SOSPECHOSA
                                # Por encima → FALSA
 
     def analizar(self, noticia):
@@ -134,8 +134,8 @@ class Analyzer:
         # El análisis lingüístico tiene peso medio (40%).
         # El sentimiento tiene menos peso (20%) porque puede dar falsos positivos.
         score_fake = (
-            score_fuente      * 0.40 +
-            score_linguistico * 0.40 +
+            score_fuente      * 0.30 +
+            score_linguistico * 0.50 +
             score_sentimiento * 0.20
         )
         score_fake = round(min(max(score_fake, 0.0), 1.0), 4)  # Clamping 0-1
@@ -193,7 +193,7 @@ class Analyzer:
             return 0.72, {"resultado": "Fuente no identificada", "dominio": "N/A"}
 
         # Dominio desconocido — no está en ninguna lista → moderadamente sospechoso
-        return 0.62, {"resultado": "Fuente desconocida, no verificada", "dominio": dominio}
+        return 0.55, {"resultado": "Fuente desconocida, no verificada", "dominio": dominio}
 
     # -------------------------------------------------------------------------
     # FACTOR 2: ANÁLISIS LINGÜÍSTICO
@@ -224,7 +224,7 @@ class Analyzer:
         # Buscar palabras sospechosas en el texto
         palabras_encontradas = [p for p in PALABRAS_SOSPECHOSAS if p in texto]
         if palabras_encontradas:
-            penalizacion += min(len(palabras_encontradas) * 0.15, 0.60)
+            penalizacion += min(len(palabras_encontradas) * 0.20, 0.70)
             hallazgos.append(f"Palabras sospechosas: {', '.join(palabras_encontradas[:3])}")
 
         # Buscar palabras que indican rigor periodístico
@@ -240,7 +240,7 @@ class Analyzer:
                 hallazgos.append(f"Patrón sospechoso en título: '{patron}'")
                 break  # Un solo patrón es suficiente penalización
 
-        score = round(min(max(0.5 + penalizacion - bonificacion, 0.0), 1.0), 4)
+        score = round(min(max(0.35 + penalizacion - bonificacion, 0.0), 1.0), 4)
 
         return score, {
             "resultado": hallazgos if hallazgos else ["Sin indicadores especiales"],

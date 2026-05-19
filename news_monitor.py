@@ -1,4 +1,4 @@
-from news_fetcher import NewsSensor
+from news.news_fetcher import NewsSensor
 
 # Temas que BuloScan monitoriza por defecto
 # Equivale a los sensores del invernadero del profesor:

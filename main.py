@@ -1,10 +1,12 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from pathlib import Path
 from pydantic import BaseModel
 from typing import Optional
 import os
 
-from database import (
+from core.database import (
     init_db,
     guardar_noticia,
     guardar_bloque,
@@ -13,17 +15,14 @@ from database import (
     obtener_blockchain_log,
     buscar_noticias
 )
-from blockchain import BuloScanChain
-from news_monitor import NewsMonitor
-from analyzer import analizar_noticia
+from core.blockchain import BuloScanChain
+from news.news_monitor import NewsMonitor
+from core.analyzer import analizar_noticia
 
 # =============================================================================
 # CONFIGURACIÓN
-# La API key de NewsAPI se lee desde variable de entorno para no exponerla
-# en el código. Si no está definida, el fetcher avisará pero la app arranca.
-# Para configurarla: export NEWSAPI_KEY="tu_api_key_aqui"
 # =============================================================================
-NEWSAPI_KEY = os.getenv("NEWSAPI_KEY", "")
+NEWSAPI_KEY = "0b13f669dc444645a24787cd14cf9e01"
 
 # =============================================================================
 # INICIALIZACIÓN DE LA APP
@@ -53,10 +52,8 @@ monitor   = NewsMonitor(api_key=NEWSAPI_KEY)
 def startup():
     """Se ejecuta automáticamente al arrancar el servidor."""
     init_db()
-    print("🚀 BuloScan API arrancada correctamente.")
-    if not NEWSAPI_KEY:
-        print("⚠️  NEWSAPI_KEY no configurada. El fetcher de noticias no funcionará.")
-        print("   Configúrala con: export NEWSAPI_KEY='tu_api_key'")
+    print("BuloScan API iniciada.")
+
 
 
 # =============================================================================
@@ -84,13 +81,9 @@ class BusquedaRequest(BaseModel):
 
 @app.get("/")
 def root():
-    """Endpoint raíz — comprueba que la API está viva."""
-    return {
-        "app": "BuloScan",
-        "version": "1.0.0",
-        "estado": "activo",
-        "mensaje": "API de detección de noticias falsas en tiempo real."
-    }
+    """Sirve el frontend desde la misma carpeta que main.py."""
+    index = Path(__file__).parent / "index.html"
+    return FileResponse(index)
 
 
 # --- ANÁLISIS ---

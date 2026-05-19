@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 
 # Nombre del fichero de base de datos — se crea automáticamente si no existe
-DB_NAME = "buloscan.db"
+DB_NAME = "data/buloscan.db"
 
 
 def get_connection():
